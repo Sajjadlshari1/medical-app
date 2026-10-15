@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Store POS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { background: #f0f4f8; padding: 12px; color: #333; }
+    header { background: #007791; color: white; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
+    .card { background: white; padding: 14px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    h2 { font-size: 16px; margin-bottom: 10px; color: #007791; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+    input, select, button { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+    button { background: #007791; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button.alt { background: #2b6cb0; }
+    button.danger { background: #e53e3e; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f7fafc; }
+    .bill-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; }
+    .total-box { font-size: 18px; font-weight: bold; text-align: right; margin-top: 10px; color: #2d3748; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .low-stock { background: #fed7d7; color: #9b2c2c; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Medical Store POS</h1>
+    <small>100% Offline System</small>
+  </header>
+
+  <!-- Stock Entry Section -->
+  <div class="card">
+    <h2>Dawa Stock Mein Daalein</h2>
+    <input type="text" id="medName" placeholder="Dawa ka Naam (e.g. Panadol 500mg)">
+    <input type="text" id="medBatch" placeholder="Batch Number / Formula">
+    <input type="date" id="medExpiry">
+    <div style="display: flex; gap: 8px;">
+      <input type="number" id="medPrice" placeholder="Price (PKR)">
+      <input type="number" id="medQty" placeholder="Quantity (Qty)">
+    </div>
+    <button onclick="addMedicine()">Stock Save Karein</button>
+  </div>
+
+  <!-- Billing Section -->
+  <div class="card">
+    <h2>Naya Bill / Sale</h2>
+    <input type="text" id="searchSale" placeholder="Dawa Search karein..." oninput="filterSaleList()">
+    <select id="saleSelect" onchange="updatePriceHint()"></select>
+    <div style="display: flex; gap: 8px;">
+      <input type="number" id="saleQty" placeholder="Kitni Qty deni he?" value="1">
+      <button class="alt" onclick="addToBill()">Bill Mein Dalein</button>
+    </div>
+
+    <div id="billItems" style="margin-top: 10px;"></div>
+    <div class="total-box">Total Bill: PKR <span id="billTotal">0</span></div>
+    <button onclick="completeSale()" style="margin-top: 10px; background: #2f855a;">Bill Complete Karein & Stock Deduct</button>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="card">
+    <h2>Maujooda Stock (Inventory)</h2>
+    <input type="text" id="searchInv" placeholder="Stock mein search karein..." oninput="renderInventory()">
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Dawa</th>
+            <th>Batch</th>
+            <th>Expiry</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryList"></tbody>
+      </table>
+    </div>
+    <button onclick="exportCSV()" class="alt" style="margin-top: 12px;">Data Excel / Backup Download</button>
+  </div>
+
+  <script>
+    let inventory = JSON.parse(localStorage.getItem('store_stock')) || [];
+    let currentBill = [];
+
+    function saveStock() {
+      localStorage.setItem('store_stock', JSON.stringify(inventory));
+      renderInventory();
+      populateSaleDropdown();
+    }
+
+    function addMedicine() {
+      const name = document.getElementById('medName').value.trim();
+      const batch = document.getElementById('medBatch').value.trim();
+      const expiry = document.getElementById('medExpiry').value;
+      const price = parseFloat(document.getElementById('medPrice').value);
+      const qty = parseInt(document.getElementById('medQty').value);
+
+      if (!name || isNaN(price) || isNaN(qty)) {
+        alert("Barah-e-karam naam, qeemat aur quantity theek se likhein.");
+        return;
+      }
+
+      const existingIndex = inventory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+      if (existingIndex > -1) {
+        inventory[existingIndex].qty += qty;
+        inventory[existingIndex].price = price;
+        inventory[existingIndex].batch = batch || inventory[existingIndex].batch;
+        inventory[existingIndex].expiry = expiry || inventory[existingIndex].expiry;
+      } else {
+        inventory.push({ id: Date.now(), name, batch, expiry, price, qty });
+      }
+
+      saveStock();
+      document.getElementById('medName').value = '';
+      document.getElementById('medBatch').value = '';
+      document.getElementById('medExpiry').value = '';
+      document.getElementById('medPrice').value = '';
+      document.getElementById('medQty').value = '';
+      alert("Dawa stock mein add ho gayi!");
+    }
+
+    function renderInventory() {
+      const filter = document.getElementById('searchInv').value.toLowerCase();
+      const tbody = document.getElementById('inventoryList');
+      tbody.innerHTML = '';
+
+      inventory
+        .filter(item => item.name.toLowerCase().includes(filter))
+        .forEach(item => {
+          const row = document.createElement('tr');
+          const isLow = item.qty <= 5;
+          row.innerHTML = `
+            <td><strong>${item.name}</strong></td>
+            <td>${item.batch || '-'}</td>
+            <td>${item.expiry || '-'}</td>
+            <td>${item.price}</td>
+            <td><span class="badge ${isLow ? 'low-stock' : ''}">${item.qty}</span></td>
+            <td><button class="danger" style="padding: 4px; font-size: 11px;" onclick="deleteItem(${item.id})">Delete</button></td>
+          `;
+          tbody.appendChild(row);
+        });
+    }
+
+    function populateSaleDropdown() {
+      const select = document.getElementById('saleSelect');
+      select.innerHTML = '<option value="">-- Dawa Select Karein --</option>';
+      inventory.forEach(item => {
+        if(item.qty > 0) {
+          select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.qty} | Price: ${item.price})</option>`;
+        }
+      });
+    }
+
+    function filterSaleList() {
+      const filter = document.getElementById('searchSale').value.toLowerCase();
+      const select = document.getElementById('saleSelect');
+      select.innerHTML = '<option value="">-- Dawa Select Karein --</option>';
+      inventory
+        .filter(item => item.name.toLowerCase().includes(filter) && item.qty > 0)
+        .forEach(item => {
+          select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.qty} | Price: ${item.price})</option>`;
+        });
+    }
+
+    function addToBill() {
+      const select = document.getElementById('saleSelect');
+      const medId = parseInt(select.value);
+      const qty = parseInt(document.getElementById('saleQty').value);
+
+      if (!medId || isNaN(qty) || qty <= 0) {
+        alert("Pehle dawa aur valid quantity select karein.");
+        return;
+      }
+
+      const item = inventory.find(i => i.id === medId);
+      if (qty > item.qty) {
+        alert(`Stock mein sirf ${item.qty} dastiyab hain!`);
+        return;
+      }
+
+      const billItem = currentBill.find(b => b.id === medId);
+      if (billItem) {
+        if (billItem.qty + qty > item.qty) {
+          alert("Aap stock se zyada bill mein add kar rahe hain!");
+          return;
+        }
+        billItem.qty += qty;
+      } else {
+        currentBill.push({ id: item.id, name: item.name, price: item.price, qty });
+      }
+
+      renderBill();
+    }
+
+    function renderBill() {
+      const billBox = document.getElementById('billItems');
+      billBox.innerHTML = '';
+      let total = 0;
+
+      currentBill.forEach(b => {
+        const itemTotal = b.price * b.qty;
+        total += itemTotal;
+        billBox.innerHTML += `
+          <div class="bill-item">
+            <span>${b.name} x ${b.qty}</span>
+            <span>PKR ${itemTotal}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('billTotal').innerText = total;
+    }
+
+    function completeSale() {
+      if (currentBill.length === 0) {
+        alert("Bill khali hai!");
+        return;
+      }
+
+      currentBill.forEach(b => {
+        const stockItem = inventory.find(i => i.id === b.id);
+        if (stockItem) {
+          stockItem.qty -= b.qty;
+        }
+      });
+
+      alert("Sale mukammal ho gayi! Stock deduct ho chuka he.");
+      currentBill = [];
+      renderBill();
+      saveStock();
+    }
+
+    function deleteItem(id) {
+      if (confirm("Kya aap is dawa ko delete karna chahte hain?")) {
+        inventory = inventory.filter(i => i.id !== id);
+        saveStock();
+      }
+    }
+
+    function exportCSV() {
+      if (inventory.length === 0) {
+        alert("Stock khali he.");
+        return;
+      }
+      let csvContent = "data:text/csv;charset=utf-8,Name,Batch,Expiry,Price,Quantity\n";
+      inventory.forEach(i => {
+        csvContent += `"${i.name}","${i.batch}","${i.expiry}",${i.price},${i.qty}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "medical_stock_backup.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Initial Load
+    renderInventory();
+    populateSaleDropdown();
+  </script>
+</body>
+</html>
