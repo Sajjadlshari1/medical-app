@@ -1658,6 +1658,20 @@ function initialize() {
 }
 
 initialize();
+  
+// Register offline support
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js")
+      .then(function () {
+        console.log("Offline support registered.");
+      })
+      .catch(function (error) {
+        console.error("Offline registration failed:", error);
+      });
+  });
+}
 </script>
 </body>
 </html>
+
