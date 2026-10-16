@@ -1,265 +1,1663 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Medical Store POS</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background: #f0f4f8; padding: 12px; color: #333; }
-    header { background: #007791; color: white; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px; }
-    .card { background: white; padding: 14px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    h2 { font-size: 16px; margin-bottom: 10px; color: #007791; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
-    input, select, button { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-    button { background: #007791; color: white; border: none; font-weight: bold; cursor: pointer; }
-    button.alt { background: #2b6cb0; }
-    button.danger { background: #e53e3e; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #f7fafc; }
-    .bill-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; }
-    .total-box { font-size: 18px; font-weight: bold; text-align: right; margin-top: 10px; color: #2d3748; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .low-stock { background: #fed7d7; color: #9b2c2c; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Store POS Pro</title>
+<style>
+:root {
+  --primary:#087f8c;
+  --dark:#123047;
+  --bg:#f3f6fa;
+  --white:#fff;
+  --border:#dfe6ed;
+  --green:#14804a;
+  --red:#c62828;
+  --orange:#c77700;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:#263746;
+}
+button,input,select,textarea {font:inherit}
+button {cursor:pointer}
+.header {
+  background:var(--dark);
+  color:white;
+  padding:17px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.header h1 {margin:0;font-size:22px}
+.header p {margin:5px 0 0;color:#c9d9e6;font-size:12px}
+.badge {
+  display:inline-block;
+  background:#d5f5e5;
+  color:#12633b;
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:bold;
+}
+.layout {
+  display:grid;
+  grid-template-columns:215px minmax(0,1fr);
+  min-height:calc(100vh - 75px);
+}
+.sidebar {
+  background:white;
+  border-right:1px solid var(--border);
+  padding:15px 10px;
+}
+.nav {
+  display:block;
+  width:100%;
+  text-align:left;
+  border:0;
+  padding:12px;
+  border-radius:7px;
+  margin-bottom:5px;
+  background:transparent;
+  color:#34485b;
+  font-weight:600;
+}
+.nav:hover,.nav.active {
+  background:#e1f5f5;
+  color:var(--primary);
+}
+.main {padding:22px;min-width:0}
+.page {display:none}
+.page.active {display:block}
+h2 {margin:0 0 17px;font-size:23px}
+h3 {font-size:16px;margin:0 0 14px}
+.muted {color:#718096;font-size:13px}
+.grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:13px;
+  margin-bottom:20px;
+}
+.card,.panel {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:17px;
+  margin-bottom:16px;
+  box-shadow:0 2px 5px #19354a05;
+}
+.metric {font-size:12px;color:#64748b}
+.metric strong {
+  display:block;
+  font-size:24px;
+  margin-top:9px;
+  color:var(--dark);
+  overflow-wrap:anywhere;
+}
+.toolbar {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:14px;
+}
+input,select,textarea {
+  border:1px solid #cbd5e1;
+  border-radius:6px;
+  padding:10px;
+  width:100%;
+  background:white;
+  min-width:0;
+}
+textarea {min-height:75px;resize:vertical}
+label {
+  font-size:12px;
+  font-weight:bold;
+  display:block;
+  margin-bottom:6px;
+}
+.form {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:13px;
+}
+.field {min-width:0}
+.btn {
+  border:0;
+  border-radius:6px;
+  padding:10px 13px;
+  background:var(--primary);
+  color:white;
+  font-weight:600;
+}
+.btn:hover {filter:brightness(.93)}
+.btn.secondary {background:#e7edf3;color:#263746}
+.btn.green {background:var(--green)}
+.btn.red {background:var(--red)}
+.btn.orange {background:var(--orange)}
+.btn.small {padding:6px 8px;font-size:12px}
+.btn:disabled {opacity:.45;cursor:not-allowed}
+.table-wrap {
+  overflow:auto;
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:7px;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  font-size:13px;
+  min-width:600px;
+}
+th,td {
+  padding:11px 10px;
+  text-align:left;
+  border-bottom:1px solid #edf1f5;
+  white-space:nowrap;
+}
+th {background:#f5f8fb;color:#475569}
+tr:last-child td {border-bottom:0}
+.right {text-align:right}
+.row {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.row>* {flex:1}
+.notice {
+  background:#fff8e6;
+  border:1px solid #f3dfaa;
+  padding:12px;
+  border-radius:7px;
+  font-size:13px;
+  margin-bottom:15px;
+}
+.success {
+  background:#e7f8ed;
+  border-color:#b9e6c9;
+}
+.danger-text {color:var(--red);font-weight:bold}
+.good-text {color:var(--green);font-weight:bold}
+.bill-total {
+  text-align:right;
+  font-size:19px;
+  font-weight:bold;
+  padding:15px 0;
+}
+hr {border:0;border-top:1px solid var(--border);margin:16px 0}
+.hidden {display:none!important}
+.footer {
+  padding:20px;
+  text-align:center;
+  font-size:12px;
+  color:#738195;
+}
+@media(max-width:950px) {
+  .grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .layout {grid-template-columns:170px minmax(0,1fr)}
+  .main {padding:15px}
+}
+@media(max-width:600px) {
+  .layout {display:block}
+  .sidebar {
+    display:flex;
+    overflow-x:auto;
+    border-right:0;
+    border-bottom:1px solid var(--border);
+    padding:7px;
+    gap:5px;
+  }
+  .nav {width:auto;white-space:nowrap;margin:0;padding:10px}
+  .grid {gap:8px}
+  .card {padding:12px}
+  .metric strong {font-size:19px}
+  .main {padding:12px}
+  .form {grid-template-columns:1fr}
+  .header {padding:14px}
+}
+@media print {
+  body.print-bill * {visibility:hidden!important}
+  body.print-bill #printArea,
+  body.print-bill #printArea * {visibility:visible!important}
+  body.print-bill #printArea {
+    display:block!important;
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    padding:15px;
+    color:#000;
+    background:white;
+  }
+  body.print-bill #printArea table {min-width:0;font-size:12px}
+  body.print-bill #printArea th,
+  body.print-bill #printArea td {white-space:normal;padding:6px}
+  .no-print {display:none!important}
+}
+</style>
 </head>
 <body>
 
-  <header>
-    <h1>Medical Store POS</h1>
-    <small>100% Offline System</small>
-  </header>
-
-  <!-- Stock Entry Section -->
-  <div class="card">
-    <h2>Dawa Stock Mein Daalein</h2>
-    <input type="text" id="medName" placeholder="Dawa ka Naam (e.g. Panadol 500mg)">
-    <input type="text" id="medBatch" placeholder="Batch Number / Formula">
-    <input type="date" id="medExpiry">
-    <div style="display: flex; gap: 8px;">
-      <input type="number" id="medPrice" placeholder="Price (PKR)">
-      <input type="number" id="medQty" placeholder="Quantity (Qty)">
-    </div>
-    <button onclick="addMedicine()">Stock Save Karein</button>
+<header class="header">
+  <div>
+    <h1 id="storeHeading">Medical Store POS Pro</h1>
+    <p>Inventory · Billing · Batch Tracking · Business Reports</p>
   </div>
-
-  <!-- Billing Section -->
-  <div class="card">
-    <h2>Naya Bill / Sale</h2>
-    <input type="text" id="searchSale" placeholder="Dawa Search karein..." oninput="filterSaleList()">
-    <select id="saleSelect" onchange="updatePriceHint()"></select>
-    <div style="display: flex; gap: 8px;">
-      <input type="number" id="saleQty" placeholder="Kitni Qty deni he?" value="1">
-      <button class="alt" onclick="addToBill()">Bill Mein Dalein</button>
-    </div>
-
-    <div id="billItems" style="margin-top: 10px;"></div>
-    <div class="total-box">Total Bill: PKR <span id="billTotal">0</span></div>
-    <button onclick="completeSale()" style="margin-top: 10px; background: #2f855a;">Bill Complete Karein & Stock Deduct</button>
+  <div>
+    <span class="badge">OFFLINE MODE</span>
+    <span class="badge" id="planBadge">PRO DEMO</span>
   </div>
+</header>
 
-  <!-- Inventory Table -->
-  <div class="card">
-    <h2>Maujooda Stock (Inventory)</h2>
-    <input type="text" id="searchInv" placeholder="Stock mein search karein..." oninput="renderInventory()">
-    <div style="overflow-x: auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Dawa</th>
-            <th>Batch</th>
-            <th>Expiry</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="inventoryList"></tbody>
-      </table>
-    </div>
-    <button onclick="exportCSV()" class="alt" style="margin-top: 12px;">Data Excel / Backup Download</button>
-  </div>
+<div class="layout">
+  <aside class="sidebar no-print">
+    <button class="nav active" data-page="dashboard">▦ Dashboard</button>
+    <button class="nav" data-page="inventory">▤ Inventory</button>
+    <button class="nav" data-page="billing">▣ New Sale / Billing</button>
+    <button class="nav" data-page="sales">▧ Sales History</button>
+    <button class="nav" data-page="customers">♙ Customers / Udhaar</button>
+    <button class="nav" data-page="purchases">⇩ Purchases / Suppliers</button>
+    <button class="nav" data-page="expenses">− Expenses</button>
+    <button class="nav" data-page="reports">▥ Profit Reports</button>
+    <button class="nav" data-page="settings">⚙ Settings / Backup</button>
+  </aside>
 
-  <script>
-    let inventory = JSON.parse(localStorage.getItem('store_stock')) || [];
-    let currentBill = [];
+  <main class="main">
 
-    function saveStock() {
-      localStorage.setItem('store_stock', JSON.stringify(inventory));
-      renderInventory();
-      populateSaleDropdown();
-    }
+    <!-- DASHBOARD -->
+    <section class="page active" id="dashboard">
+      <h2>Business Dashboard</h2>
+      <div class="grid">
+        <div class="card metric">Inventory batches<strong id="mBatches">0</strong></div>
+        <div class="card metric">Stock units<strong id="mStock">0</strong></div>
+        <div class="card metric">Today's sales<strong id="mSales">Rs 0</strong></div>
+        <div class="card metric">Estimated stock value<strong id="mStockValue">Rs 0</strong></div>
+        <div class="card metric">Sales transactions<strong id="mTransactions">0</strong></div>
+        <div class="card metric">Low-stock batches<strong id="mLow">0</strong></div>
+        <div class="card metric">Expired batches<strong id="mExpired">0</strong></div>
+        <div class="card metric">Customer udhaar<strong id="mCredit">Rs 0</strong></div>
+      </div>
 
-    function addMedicine() {
-      const name = document.getElementById('medName').value.trim();
-      const batch = document.getElementById('medBatch').value.trim();
-      const expiry = document.getElementById('medExpiry').value;
-      const price = parseFloat(document.getElementById('medPrice').value);
-      const qty = parseInt(document.getElementById('medQty').value);
+      <div class="panel">
+        <h3>Stock Alerts</h3>
+        <div id="dashboardAlerts" class="muted">No alerts.</div>
+      </div>
+      <div class="panel">
+        <h3>Recent Sales</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th></tr></thead>
+            <tbody id="recentSales"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-      if (!name || isNaN(price) || isNaN(qty)) {
-        alert("Barah-e-karam naam, qeemat aur quantity theek se likhein.");
-        return;
-      }
+    <!-- INVENTORY -->
+    <section class="page" id="inventory">
+      <h2>Medicine Inventory</h2>
+      <div class="notice">Each batch is tracked separately. Enter the purchase cost per unit and selling price per unit. Expired stock is blocked at checkout.</div>
 
-      const existingIndex = inventory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
-      if (existingIndex > -1) {
-        inventory[existingIndex].qty += qty;
-        inventory[existingIndex].price = price;
-        inventory[existingIndex].batch = batch || inventory[existingIndex].batch;
-        inventory[existingIndex].expiry = expiry || inventory[existingIndex].expiry;
-      } else {
-        inventory.push({ id: Date.now(), name, batch, expiry, price, qty });
-      }
-
-      saveStock();
-      document.getElementById('medName').value = '';
-      document.getElementById('medBatch').value = '';
-      document.getElementById('medExpiry').value = '';
-      document.getElementById('medPrice').value = '';
-      document.getElementById('medQty').value = '';
-      alert("Dawa stock mein add ho gayi!");
-    }
-
-    function renderInventory() {
-      const filter = document.getElementById('searchInv').value.toLowerCase();
-      const tbody = document.getElementById('inventoryList');
-      tbody.innerHTML = '';
-
-      inventory
-        .filter(item => item.name.toLowerCase().includes(filter))
-        .forEach(item => {
-          const row = document.createElement('tr');
-          const isLow = item.qty <= 5;
-          row.innerHTML = `
-            <td><strong>${item.name}</strong></td>
-            <td>${item.batch || '-'}</td>
-            <td>${item.expiry || '-'}</td>
-            <td>${item.price}</td>
-            <td><span class="badge ${isLow ? 'low-stock' : ''}">${item.qty}</span></td>
-            <td><button class="danger" style="padding: 4px; font-size: 11px;" onclick="deleteItem(${item.id})">Delete</button></td>
-          `;
-          tbody.appendChild(row);
-        });
-    }
-
-    function populateSaleDropdown() {
-      const select = document.getElementById('saleSelect');
-      select.innerHTML = '<option value="">-- Dawa Select Karein --</option>';
-      inventory.forEach(item => {
-        if(item.qty > 0) {
-          select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.qty} | Price: ${item.price})</option>`;
-        }
-      });
-    }
-
-    function filterSaleList() {
-      const filter = document.getElementById('searchSale').value.toLowerCase();
-      const select = document.getElementById('saleSelect');
-      select.innerHTML = '<option value="">-- Dawa Select Karein --</option>';
-      inventory
-        .filter(item => item.name.toLowerCase().includes(filter) && item.qty > 0)
-        .forEach(item => {
-          select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.qty} | Price: ${item.price})</option>`;
-        });
-    }
-
-    function addToBill() {
-      const select = document.getElementById('saleSelect');
-      const medId = parseInt(select.value);
-      const qty = parseInt(document.getElementById('saleQty').value);
-
-      if (!medId || isNaN(qty) || qty <= 0) {
-        alert("Pehle dawa aur valid quantity select karein.");
-        return;
-      }
-
-      const item = inventory.find(i => i.id === medId);
-      if (qty > item.qty) {
-        alert(`Stock mein sirf ${item.qty} dastiyab hain!`);
-        return;
-      }
-
-      const billItem = currentBill.find(b => b.id === medId);
-      if (billItem) {
-        if (billItem.qty + qty > item.qty) {
-          alert("Aap stock se zyada bill mein add kar rahe hain!");
-          return;
-        }
-        billItem.qty += qty;
-      } else {
-        currentBill.push({ id: item.id, name: item.name, price: item.price, qty });
-      }
-
-      renderBill();
-    }
-
-    function renderBill() {
-      const billBox = document.getElementById('billItems');
-      billBox.innerHTML = '';
-      let total = 0;
-
-      currentBill.forEach(b => {
-        const itemTotal = b.price * b.qty;
-        total += itemTotal;
-        billBox.innerHTML += `
-          <div class="bill-item">
-            <span>${b.name} x ${b.qty}</span>
-            <span>PKR ${itemTotal}</span>
+      <div class="panel">
+        <h3>Add Medicine / Batch</h3>
+        <form id="medicineForm">
+          <div class="form">
+            <div class="field"><label>Medicine name *</label><input id="medName" required placeholder="e.g. Paracetamol"></div>
+            <div class="field"><label>Brand / Manufacturer</label><input id="medBrand" placeholder="Brand name"></div>
+            <div class="field"><label>Batch number *</label><input id="medBatch" required placeholder="Batch ID"></div>
+            <div class="field"><label>Category</label><input id="medCategory" placeholder="Tablet / Syrup"></div>
+            <div class="field"><label>Expiry date *</label><input id="medExpiry" type="date" required></div>
+            <div class="field"><label>Quantity *</label><input id="medQty" type="number" min="1" step="1" required></div>
+            <div class="field"><label>Purchase cost per unit *</label><input id="medCost" type="number" min="0" step=".01" required></div>
+            <div class="field"><label>Selling price per unit *</label><input id="medPrice" type="number" min="0.01" step=".01" required></div>
+            <div class="field"><label>Low-stock threshold</label><input id="medThreshold" type="number" min="0" step="1" value="10"></div>
+            <div class="field"><label>Supplier</label><input id="medSupplier" placeholder="Supplier name"></div>
           </div>
-        `;
-      });
+          <div class="toolbar" style="margin-top:15px">
+            <button class="btn" type="submit">Save Medicine Batch</button>
+            <button class="btn secondary" type="reset">Clear Form</button>
+          </div>
+        </form>
+      </div>
 
-      document.getElementById('billTotal').innerText = total;
+      <div class="panel">
+        <div class="toolbar">
+          <input id="inventorySearch" placeholder="Search name, brand or batch..." style="flex:2">
+          <select id="inventoryFilter" style="max-width:180px">
+            <option value="all">All stock</option>
+            <option value="low">Low stock</option>
+            <option value="expired">Expired</option>
+            <option value="expiring">Expires in 90 days</option>
+          </select>
+          <button class="btn secondary" onclick="exportCSV('inventory')">Export CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Medicine / Batch</th><th>Expiry</th><th>Stock</th>
+                <th>Cost</th><th>Price</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILLING -->
+    <section class="page" id="billing">
+      <h2>New Sale / Billing</h2>
+      <div class="panel">
+        <div class="form">
+          <div class="field">
+            <label>Customer</label>
+            <select id="billCustomer"><option value="">Walk-in customer</option></select>
+          </div>
+          <div class="field">
+            <label>Payment method</label>
+            <select id="billPayment">
+              <option>Cash</option><option>Card</option><option>Bank Transfer</option><option>JazzCash</option><option>EasyPaisa</option><option>Credit / Udhaar</option><option>Split Payment</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Discount (Rs)</label>
+            <input id="billDiscount" type="number" min="0" step=".01" value="0">
+          </div>
+        </div>
+        <hr>
+        <h3>Add Medicine to Bill</h3>
+        <div class="form">
+          <div class="field"><label>Medicine batch</label><select id="billMedicine"></select></div>
+          <div class="field"><label>Quantity</label><input id="billQty" type="number" min="1" step="1" value="1"></div>
+          <div class="field" style="align-self:end"><button class="btn" type="button" onclick="addToCart()">Add to Bill</button></div>
+        </div>
+        <div class="table-wrap" style="margin-top:15px">
+          <table>
+            <thead><tr><th>Medicine</th><th>Batch</th><th>Qty</th><th>Price</th><th>Subtotal</th><th>Remove</th></tr></thead>
+            <tbody id="cartRows"></tbody>
+          </table>
+        </div>
+        <div class="bill-total" id="billTotal">Total: Rs 0</div>
+        <div class="form">
+          <div class="field"><label>Amount received (Rs)</label><input id="billPaid" type="number" min="0" step=".01" value="0"></div>
+          <div class="field"><label>Change due</label><input id="billChange" readonly value="Rs 0"></div>
+          <div class="field"><label>Notes</label><input id="billNotes" placeholder="Optional"></div>
+        </div>
+        <div class="toolbar" style="margin-top:15px">
+          <button class="btn green" onclick="completeSale()">Complete Sale & Save</button>
+          <button class="btn secondary" onclick="clearCart()">Clear Bill</button>
+        </div>
+      </div>
+      <div id="printArea" class="panel hidden"></div>
+    </section>
+
+    <!-- SALES -->
+    <section class="page" id="sales">
+      <h2>Sales History</h2>
+      <div class="panel">
+        <div class="toolbar">
+          <input type="date" id="salesFrom" aria-label="Sales from date">
+          <input type="date" id="salesTo" aria-label="Sales to date">
+          <input id="salesSearch" placeholder="Search invoice or customer">
+          <button class="btn secondary" onclick="renderSales()">Search</button>
+          <button class="btn secondary" onclick="exportCSV('sales')">Export CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th><th>Paid</th><th>Due</th><th>Action</th></tr></thead>
+            <tbody id="salesRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMERS -->
+    <section class="page" id="customers">
+      <h2>Customers & Udhaar</h2>
+      <div class="panel">
+        <h3>Add Customer</h3>
+        <form id="customerForm">
+          <div class="form">
+            <div class="field"><label>Customer name *</label><input id="custName" required></div>
+            <div class="field"><label>Phone</label><input id="custPhone" type="tel"></div>
+            <div class="field"><label>Address</label><input id="custAddress"></div>
+          </div>
+          <div class="toolbar" style="margin-top:12px"><button class="btn">Save Customer</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Customer List & Outstanding Balance</h3>
+        <div class="table-wrap">
+          <table><thead><tr><th>Name</th><th>Phone</th><th>Total Due</th><th>Receive Payment</th><th>Action</th></tr></thead><tbody id="customerRows"></tbody></table>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Customer Payment History</h3>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Notes</th></tr></thead><tbody id="paymentRows"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PURCHASES -->
+    <section class="page" id="purchases">
+      <h2>Purchases & Suppliers</h2>
+      <div class="notice">Record new stock purchases here. Saving a purchase adds its quantity to an existing batch or creates a new batch if the batch number is different.</div>
+      <div class="panel">
+        <h3>Record Stock Purchase</h3>
+        <form id="purchaseForm">
+          <div class="form">
+            <div class="field"><label>Medicine *</label><input id="purName" required></div>
+            <div class="field"><label>Brand</label><input id="purBrand"></div>
+            <div class="field"><label>Batch number *</label><input id="purBatch" required></div>
+            <div class="field"><label>Expiry date *</label><input id="purExpiry" type="date" required></div>
+            <div class="field"><label>Quantity *</label><input id="purQty" type="number" min="1" step="1" required></div>
+            <div class="field"><label>Unit purchase cost *</label><input id="purCost" type="number" min="0" step=".01" required></div>
+            <div class="field"><label>Selling price per unit *</label><input id="purPrice" type="number" min=".01" step=".01" required></div>
+            <div class="field"><label>Supplier *</label><input id="purSupplier" required></div>
+            <div class="field"><label>Invoice/reference</label><input id="purInvoice"></div>
+          </div>
+          <div class="toolbar" style="margin-top:12px"><button class="btn">Save Purchase</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Purchase Register</h3>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Invoice</th><th>Medicine</th><th>Supplier</th><th>Qty</th><th>Cost</th><th>Total</th></tr></thead><tbody id="purchaseRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- EXPENSES -->
+    <section class="page" id="expenses">
+      <h2>Business Expenses</h2>
+      <div class="panel">
+        <form id="expenseForm">
+          <div class="form">
+            <div class="field"><label>Expense description *</label><input id="expDescription" required placeholder="Electricity, rent, salary"></div>
+            <div class="field"><label>Category</label><select id="expCategory"><option>Rent</option><option>Salary</option><option>Electricity</option><option>Transport</option><option>Internet / Phone</option><option>Maintenance</option><option>Other</option></select></div>
+            <div class="field"><label>Amount (Rs) *</label><input id="expAmount" type="number" min=".01" step=".01" required></div>
+          </div>
+          <div class="toolbar" style="margin-top:12px"><button class="btn">Save Expense</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="toolbar"><button class="btn secondary" onclick="exportCSV('expenses')">Export CSV</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Action</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="page" id="reports">
+      <h2>Profit & Business Reports</h2>
+      <div class="panel">
+        <div class="form">
+          <div class="field"><label>From date</label><input type="date" id="reportFrom"></div>
+          <div class="field"><label>To date</label><input type="date" id="reportTo"></div>
+          <div class="field" style="align-self:end"><button class="btn" onclick="renderReports()">Generate Report</button></div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card metric">Sales<strong id="rSales">Rs 0</strong></div>
+        <div class="card metric">Estimated gross profit<strong id="rGross">Rs 0</strong></div>
+        <div class="card metric">Expenses<strong id="rExpenses">Rs 0</strong></div>
+        <div class="card metric">Estimated net profit<strong id="rNet">Rs 0</strong></div>
+      </div>
+      <div class="panel">
+        <h3>How to read this report</h3>
+        <p class="muted">Gross profit is calculated from recorded sales minus the cost recorded for the sold stock. Net profit subtracts recorded expenses. This is an estimate, not a complete accounting statement. Unsold stock purchases are not automatically treated as expenses. Taxes, returns, damaged stock and unpaid supplier invoices need separate accounting treatment.</p>
+        <button class="btn secondary" onclick="exportCSV('report')">Export Report CSV</button>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="settings">
+      <h2>Settings, Data & Backup</h2>
+      <div class="panel">
+        <h3>Store Details</h3>
+        <div class="form">
+          <div class="field"><label>Store name</label><input id="settingStore" placeholder="Your medical store"></div>
+          <div class="field"><label>Phone</label><input id="settingPhone"></div>
+          <div class="field"><label>Address</label><input id="settingAddress"></div>
+          <div class="field"><label>Currency label</label><input id="settingCurrency" value="Rs"></div>
+          <div class="field"><label>Low-stock default</label><input id="settingThreshold" type="number" min="0" step="1" value="10"></div>
+          <div class="field"><label>Product mode</label><select id="settingPlan"><option>Basic</option><option selected>Pro Demo</option><option>Custom Demo</option></select></div>
+        </div>
+        <div class="toolbar" style="margin-top:12px"><button class="btn" onclick="saveSettings()">Save Settings</button></div>
+      </div>
+
+      <div class="panel">
+        <h3>Backup & Restore</h3>
+        <p class="muted">Download a JSON backup containing inventory, sales, customers, payments, purchases, expenses and settings. Keep backups somewhere safe.</p>
+        <div class="toolbar">
+          <button class="btn green" onclick="backupData()">Download Full JSON Backup</button>
+          <button class="btn secondary" onclick="document.getElementById('restoreFile').click()">Restore JSON Backup</button>
+          <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+        </div>
+        <div class="notice">Restoring a backup replaces the data currently stored in this browser. Download a backup of your current data first.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Data Storage</h3>
+        <p class="muted">This version stores data in this browser's localStorage. It does not automatically synchronize between devices. Clearing browser data or losing the device may destroy unsaved backups. For real multi-user business use, a secure database and server are needed.</p>
+        <button class="btn red" onclick="resetAllData()">Delete All Local Business Data</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="footer no-print">Medical Store POS Pro · Single-file offline application · Back up your data regularly</div>
+
+<script>
+"use strict";
+
+/* ================================
+   MEDICAL STORE POS PRO
+   All application code is in this file.
+================================ */
+
+const STORAGE_KEY = "medical_store_pos_pro_v1";
+
+const $ = id => document.getElementById(id);
+
+const money = value => {
+  const currency = state.settings.currency || "Rs";
+  return currency + " " + Number(value || 0).toLocaleString("en-PK", {
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+};
+
+const today = () => new Date().toISOString().slice(0,10);
+const uid = prefix => prefix + "-" + Date.now().toString(36).toUpperCase() +
+  "-" + Math.random().toString(36).slice(2,7).toUpperCase();
+
+const safe = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+const number = value => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const initialState = () => ({
+  version:1,
+  inventory:[],
+  sales:[],
+  customers:[],
+  payments:[],
+  purchases:[],
+  expenses:[],
+  settings:{
+    store:"Medical Store POS Pro",
+    phone:"",
+    address:"",
+    currency:"Rs",
+    threshold:10,
+    plan:"Pro Demo"
+  }
+});
+
+let state = loadState();
+let cart = [];
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return initialState();
+
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object") return initialState();
+
+    const base = initialState();
+
+    for (const key of ["inventory","sales","customers","payments","purchases","expenses"]) {
+      if (Array.isArray(data[key])) base[key] = data[key];
     }
 
-    function completeSale() {
-      if (currentBill.length === 0) {
-        alert("Bill khali hai!");
-        return;
-      }
-
-      currentBill.forEach(b => {
-        const stockItem = inventory.find(i => i.id === b.id);
-        if (stockItem) {
-          stockItem.qty -= b.qty;
-        }
-      });
-
-      alert("Sale mukammal ho gayi! Stock deduct ho chuka he.");
-      currentBill = [];
-      renderBill();
-      saveStock();
+    if (data.settings && typeof data.settings === "object") {
+      base.settings = {...base.settings,...data.settings};
     }
 
-    function deleteItem(id) {
-      if (confirm("Kya aap is dawa ko delete karna chahte hain?")) {
-        inventory = inventory.filter(i => i.id !== id);
-        saveStock();
-      }
-    }
+    return base;
+  } catch (error) {
+    alert("Saved data could not be loaded. Do not clear browser storage. Restore a valid backup if available.");
+    return initialState();
+  }
+}
 
-    function exportCSV() {
-      if (inventory.length === 0) {
-        alert("Stock khali he.");
-        return;
-      }
-      let csvContent = "data:text/csv;charset=utf-8,Name,Batch,Expiry,Price,Quantity\n";
-      inventory.forEach(i => {
-        csvContent += `"${i.name}","${i.batch}","${i.expiry}",${i.price},${i.qty}\n`;
-      });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "medical_stock_backup.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    alert("Could not save data. Browser storage may be full. Download a backup and reduce stored data.");
+    return false;
+  }
+}
 
-    // Initial Load
+function notify(message) {
+  alert(message);
+}
+
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav").forEach(el => el.classList.remove("active"));
+
+  const section = $(""+page);
+  if (!section) return;
+
+  section.classList.add("active");
+  const button = document.querySelector('.nav[data-page="'+page+'"]');
+  if (button) button.classList.add("active");
+
+  if (page === "dashboard") renderDashboard();
+  if (page === "inventory") renderInventory();
+  if (page === "billing") renderBillSelectors();
+  if (page === "sales") renderSales();
+  if (page === "customers") renderCustomers();
+  if (page === "purchases") renderPurchases();
+  if (page === "expenses") renderExpenses();
+  if (page === "reports") renderReports();
+  if (page === "settings") loadSettingsForm();
+}
+
+document.querySelectorAll(".nav").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.page));
+});
+
+function batchStatus(item) {
+  if (item.expiry && item.expiry < today()) return "Expired";
+  if (number(item.qty) <= number(item.threshold)) return "Low stock";
+  if (item.expiry) {
+    const days = (new Date(item.expiry+"T00:00:00") - new Date(today()+"T00:00:00")) / 86400000;
+    if (days >= 0 && days <= 90) return "Expiring soon";
+  }
+  return "In stock";
+}
+
+function isExpired(item) {
+  return Boolean(item.expiry && item.expiry < today());
+}
+
+function stockUnits() {
+  return state.inventory.reduce((sum,item) => sum + number(item.qty),0);
+}
+
+function stockValue() {
+  return state.inventory.reduce((sum,item) => sum + number(item.qty)*number(item.cost),0);
+}
+
+function customerDue(customerId) {
+  const salesDue = state.sales
+    .filter(s => s.customerId === customerId)
+    .reduce((sum,s) => sum + Math.max(0,number(s.total)-number(s.paid)),0);
+
+  const received = state.payments
+    .filter(p => p.customerId === customerId)
+    .reduce((sum,p) => sum + number(p.amount),0);
+
+  return Math.max(0,salesDue-received);
+}
+
+function allCustomerDue() {
+  return state.customers.reduce((sum,c) => sum + customerDue(c.id),0);
+}
+
+function renderDashboard() {
+  $("mBatches").textContent = state.inventory.length;
+  $("mStock").textContent = stockUnits().toLocaleString();
+  $("mStockValue").textContent = money(stockValue());
+
+  const salesToday = state.sales.filter(s => s.date.slice(0,10) === today());
+  $("mSales").textContent = money(salesToday.reduce((sum,s)=>sum+number(s.total),0));
+  $("mTransactions").textContent = salesToday.length;
+  $("mLow").textContent = state.inventory.filter(i => number(i.qty) <= number(i.threshold) && !isExpired(i)).length;
+  $("mExpired").textContent = state.inventory.filter(isExpired).length;
+  $("mCredit").textContent = money(allCustomerDue());
+
+  const alerts = state.inventory.filter(i => {
+    return isExpired(i) || number(i.qty) <= number(i.threshold) || batchStatus(i) === "Expiring soon";
+  });
+
+  $("dashboardAlerts").innerHTML = alerts.length ? alerts.slice(0,30).map(i =>
+    '<div style="padding:7px 0;border-bottom:1px solid #eee">'+
+    '<strong>'+safe(i.name)+'</strong> · Batch '+safe(i.batch)+
+    ' · Qty '+number(i.qty)+' · Expiry '+safe(i.expiry)+
+    ' · <span class="danger-text">'+safe(batchStatus(i))+'</span></div>'
+  ).join("") : '<span class="good-text">No current stock alerts.</span>';
+
+  $("recentSales").innerHTML = state.sales.slice().reverse().slice(0,8).map(s =>
+    '<tr><td>'+safe(s.invoice)+'</td><td>'+safe(s.date)+'</td><td>'+
+    safe(s.customerName || "Walk-in")+'</td><td>'+money(s.total)+'</td></tr>'
+  ).join("") || '<tr><td colspan="4">No sales recorded yet.</td></tr>';
+}
+
+/* INVENTORY */
+
+$("medicineForm").addEventListener("submit",event => {
+  event.preventDefault();
+
+  const name = $("medName").value.trim();
+  const batch = $("medBatch").value.trim();
+  const expiry = $("medExpiry").value;
+  const qty = Number($("medQty").value);
+  const cost = Number($("medCost").value);
+  const price = Number($("medPrice").value);
+  const threshold = Number($("medThreshold").value);
+
+  if (!name || !batch || !expiry || !Number.isInteger(qty) || qty < 1 ||
+      cost < 0 || price <= 0 || threshold < 0) {
+    return notify("Please enter valid medicine and batch details.");
+  }
+
+  if (expiry < today()) {
+    return notify("This batch is already expired. Do not add expired stock for sale.");
+  }
+
+  const duplicate = state.inventory.find(i =>
+    i.name.toLowerCase() === name.toLowerCase() &&
+    i.batch.toLowerCase() === batch.toLowerCase()
+  );
+
+  if (duplicate) {
+    return notify("This medicine and batch already exist. Record additional stock through Purchases.");
+  }
+
+  state.inventory.push({
+    id:uid("MED"),
+    name,
+    brand:$("medBrand").value.trim(),
+    batch,
+    category:$("medCategory").value.trim(),
+    expiry,
+    qty,
+    cost,
+    price,
+    threshold,
+    supplier:$("medSupplier").value.trim(),
+    createdAt:new Date().toISOString()
+  });
+
+  if (!saveState()) return;
+
+  event.target.reset();
+  $("medThreshold").value = state.settings.threshold;
+  renderInventory();
+  renderDashboard();
+  notify("Medicine batch saved successfully.");
+});
+
+$("inventorySearch").addEventListener("input",renderInventory);
+$("inventoryFilter").addEventListener("change",renderInventory);
+
+function renderInventory() {
+  const q = $("inventorySearch").value.trim().toLowerCase();
+  const filter = $("inventoryFilter").value;
+
+  const rows = state.inventory.filter(i => {
+    const matches = [i.name,i.brand,i.batch,i.category,i.supplier]
+      .some(v => String(v || "").toLowerCase().includes(q));
+
+    const status = batchStatus(i);
+
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "low" && number(i.qty) <= number(i.threshold) && !isExpired(i)) ||
+      (filter === "expired" && isExpired(i)) ||
+      (filter === "expiring" && status === "Expiring soon");
+
+    return matches && matchesFilter;
+  });
+
+  $("inventoryRows").innerHTML = rows.map(i => {
+    const status = batchStatus(i);
+    const statusClass = status === "In stock" ? "good-text" : "danger-text";
+
+    return '<tr>'+
+      '<td><strong>'+safe(i.name)+'</strong><br><span class="muted">'+safe(i.brand)+' · '+safe(i.batch)+'</span></td>'+
+      '<td>'+safe(i.expiry)+'</td>'+
+      '<td>'+number(i.qty)+'</td>'+
+      '<td>'+money(i.cost)+'</td>'+
+      '<td>'+money(i.price)+'</td>'+
+      '<td class="'+statusClass+'">'+safe(status)+'</td>'+
+      '<td><button class="btn small secondary" onclick="editMedicine(\''+i.id+'\')">Edit</button> '+
+      '<button class="btn small red" onclick="deleteMedicine(\''+i.id+'\')">Delete</button></td>'+
+      '</tr>';
+  }).join("") || '<tr><td colspan="7">No matching medicine batches.</td></tr>';
+}
+
+function editMedicine(id) {
+  const i = state.inventory.find(x => x.id === id);
+  if (!i) return;
+
+  const newPrice = prompt("New selling price per unit:",i.price);
+  if (newPrice === null) return;
+
+  const price = Number(newPrice);
+  if (!Number.isFinite(price) || price <= 0) return notify("Invalid selling price.");
+
+  const newThreshold = prompt("New low-stock threshold:",i.threshold);
+  if (newThreshold === null) return;
+
+  const threshold = Number(newThreshold);
+  if (!Number.isInteger(threshold) || threshold < 0) return notify("Invalid threshold.");
+
+  i.price = price;
+  i.threshold = threshold;
+
+  if (saveState()) {
     renderInventory();
-    populateSaleDropdown();
-  </script>
+    renderDashboard();
+    renderBillSelectors();
+    notify("Medicine updated.");
+  }
+}
+
+function deleteMedicine(id) {
+  const i = state.inventory.find(x => x.id === id);
+  if (!i) return;
+
+  if (!confirm("Delete "+i.name+" batch "+i.batch+"? Historical sales will remain, but this batch will be removed.")) return;
+
+  state.inventory = state.inventory.filter(x => x.id !== id);
+
+  if (saveState()) {
+    renderInventory();
+    renderDashboard();
+    renderBillSelectors();
+  }
+}
+
+/* BILLING */
+
+function renderBillSelectors() {
+  const customerValue = $("billCustomer").value;
+
+  $("billCustomer").innerHTML = '<option value="">Walk-in customer</option>' +
+    state.customers.map(c =>
+      '<option value="'+safe(c.id)+'">'+safe(c.name)+' · Due '+money(customerDue(c.id))+'</option>'
+    ).join("");
+
+  if (state.customers.some(c => c.id === customerValue)) {
+    $("billCustomer").value = customerValue;
+  }
+
+  const previousMedicine = $("billMedicine").value;
+
+  const available = state.inventory.filter(i => number(i.qty)>0 && !isExpired(i));
+
+  $("billMedicine").innerHTML = '<option value="">Select medicine batch</option>' +
+    available.map(i =>
+      '<option value="'+safe(i.id)+'">'+safe(i.name)+' · '+safe(i.batch)+
+      ' · Stock '+number(i.qty)+' · '+money(i.price)+'</option>'
+    ).join("");
+
+  if (available.some(i => i.id === previousMedicine)) {
+    $("billMedicine").value = previousMedicine;
+  }
+
+  renderCart();
+}
+
+function addToCart() {
+  const id = $("billMedicine").value;
+  const qty = Number($("billQty").value);
+  const item = state.inventory.find(i => i.id === id);
+
+  if (!item) return notify("Select a medicine batch.");
+  if (!Number.isInteger(qty) || qty < 1) return notify("Quantity must be a positive whole number.");
+  if (isExpired(item)) return notify("Expired stock cannot be sold.");
+  if (qty > number(item.qty)) return notify("Insufficient stock. Available: "+item.qty);
+
+  const existing = cart.find(c => c.inventoryId === id);
+  const currentCartQty = existing ? existing.qty : 0;
+
+  if (currentCartQty + qty > number(item.qty)) {
+    return notify("Total quantity in bill exceeds available stock.");
+  }
+
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({
+      inventoryId:item.id,
+      name:item.name,
+      batch:item.batch,
+      cost:number(item.cost),
+      price:number(item.price),
+      qty
+    });
+  }
+
+  renderCart();
+}
+
+function cartSubtotal() {
+  return cart.reduce((sum,item)=>sum+item.qty*item.price,0);
+}
+
+function billGrandTotal() {
+  return Math.max(0,cartSubtotal()-Math.max(0,number($("billDiscount").value)));
+}
+
+function renderCart() {
+  $("cartRows").innerHTML = cart.map((item,index) =>
+    '<tr><td>'+safe(item.name)+'</td><td>'+safe(item.batch)+'</td><td>'+
+    item.qty+'</td><td>'+money(item.price)+'</td><td>'+
+    money(item.qty*item.price)+'</td><td><button class="btn small red" onclick="removeCartItem('+index+')">Remove</button></td></tr>'
+  ).join("") || '<tr><td colspan="6">Bill is empty.</td></tr>';
+
+  const total = billGrandTotal();
+  $("billTotal").textContent = "Total: "+money(total);
+
+  const paid = Math.max(0,number($("billPaid").value));
+  $("billChange").value = money(Math.max(0,paid-total));
+}
+
+function removeCartItem(index) {
+  cart.splice(index,1);
+  renderCart();
+}
+
+function clearCart() {
+  if (cart.length && !confirm("Clear this bill?")) return;
+
+  cart = [];
+  $("billDiscount").value = 0;
+  $("billPaid").value = 0;
+  $("billNotes").value = "";
+  renderCart();
+}
+
+$("billDiscount").addEventListener("input",renderCart);
+$("billPaid").addEventListener("input",renderCart);
+$("billPayment").addEventListener("change",() => {
+  if ($("billPayment").value === "Credit / Udhaar") {
+    $("billPaid").value = 0;
+  }
+  renderCart();
+});
+
+function completeSale() {
+  if (!cart.length) return notify("Add at least one medicine to the bill.");
+
+  const customerId = $("billCustomer").value;
+  const customer = state.customers.find(c => c.id === customerId);
+  const payment = $("billPayment").value;
+  const total = billGrandTotal();
+  const paid = Math.max(0,number($("billPaid").value));
+
+  if (number($("billDiscount").value) < 0) return notify("Discount cannot be negative.");
+  if (number($("billDiscount").value) > cartSubtotal()) return notify("Discount cannot exceed subtotal.");
+  if (paid > total) return notify("Amount received cannot exceed the bill total. Adjust the received amount.");
+
+  if (payment === "Credit / Udhaar" && !customer) {
+    return notify("Select a registered customer before recording a credit sale.");
+  }
+
+  if (paid < total && !customer) {
+    return notify("Select a registered customer to record an outstanding balance.");
+  }
+
+  if (payment !== "Credit / Udhaar" && paid < total && !customer) {
+    return notify("An unpaid balance must be assigned to a registered customer.");
+  }
+
+  for (const line of cart) {
+    const item = state.inventory.find(i => i.id === line.inventoryId);
+
+    if (!item || isExpired(item) || number(item.qty) < line.qty) {
+      return notify("Stock changed or expired. Review your bill before saving.");
+    }
+
+    if (number(item.price) !== number(line.price)) {
+      return notify("A medicine price changed. Clear and rebuild the bill with the current price.");
+    }
+  }
+
+  const sale = {
+    id:uid("SALE"),
+    invoice:uid("INV"),
+    date:new Date().toISOString(),
+    customerId:customer ? customer.id : "",
+    customerName:customer ? customer.name : "Walk-in",
+    payment,
+    subtotal:cartSubtotal(),
+    discount:Math.max(0,number($("billDiscount").value)),
+    total,
+    paid,
+    notes:$("billNotes").value.trim(),
+    items:cart.map(line=>({...line})),
+    grossProfit:cart.reduce((sum,line)=>sum+line.qty*(line.price-line.cost),0)-
+      Math.max(0,number($("billDiscount").value))
+  };
+
+  for (const line of cart) {
+    const item = state.inventory.find(i=>i.id===line.inventoryId);
+    item.qty -= line.qty;
+  }
+
+  state.sales.push(sale);
+
+  if (!saveState()) {
+    // Restore the in-memory stock and sale if persistence failed.
+    for (const line of cart) {
+      const item = state.inventory.find(i=>i.id===line.inventoryId);
+      if (item) item.qty += line.qty;
+    }
+    state.sales = state.sales.filter(s=>s.id!==sale.id);
+    return;
+  }
+
+  cart = [];
+  $("billDiscount").value = 0;
+  $("billPaid").value = 0;
+  $("billNotes").value = "";
+
+  renderBillSelectors();
+  renderInventory();
+  renderDashboard();
+  renderSales();
+  renderCustomers();
+
+  showReceipt(sale);
+
+  notify("Sale saved successfully. Invoice: "+sale.invoice);
+}
+
+function showReceipt(sale) {
+  const store = state.settings;
+
+  $("printArea").innerHTML =
+    '<div style="text-align:center">'+
+    '<h2>'+safe(store.store)+'</h2>'+
+    '<p>'+safe(store.address)+'<br>'+safe(store.phone)+'</p>'+
+    '<h3>SALES RECEIPT</h3></div>'+
+    '<p>Invoice: '+safe(sale.invoice)+'<br>Date: '+safe(sale.date)+
+    '<br>Customer: '+safe(sale.customerName)+
+    '<br>Payment: '+safe(sale.payment)+'</p>'+
+    '<table style="width:100%;border-collapse:collapse" border="1">'+
+    '<thead><tr><th>Medicine</th><th>Batch</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>'+
+    '<tbody>'+sale.items.map(i=>
+      '<tr><td>'+safe(i.name)+'</td><td>'+safe(i.batch)+'</td><td>'+i.qty+
+      '</td><td>'+money(i.price)+'</td><td>'+money(i.qty*i.price)+'</td></tr>'
+    ).join("")+'</tbody></table>'+
+    '<p style="text-align:right">Subtotal: '+money(sale.subtotal)+
+    '<br>Discount: '+money(sale.discount)+
+    '<br><strong>Total: '+money(sale.total)+'</strong>'+
+    '<br>Paid: '+money(sale.paid)+
+    '<br>Balance: '+money(Math.max(0,sale.total-sale.paid))+'</p>'+
+    '<p style="text-align:center">Thank you for your visit.</p>'+
+    '<div class="no-print"><button class="btn" onclick="printReceipt()">Print Receipt</button> '+
+    '<button class="btn secondary" onclick="document.getElementById(\'printArea\').classList.add(\'hidden\')">Close</button></div>';
+
+  $("printArea").classList.remove("hidden");
+}
+
+function printReceipt() {
+  document.body.classList.add("print-bill");
+  window.print();
+  setTimeout(()=>document.body.classList.remove("print-bill"),500);
+}
+
+/* SALES HISTORY */
+
+function renderSales() {
+  const q = $("salesSearch").value.trim().toLowerCase();
+  const from = $("salesFrom").value;
+  const to = $("salesTo").value;
+
+  const rows = state.sales.filter(s => {
+    const date = s.date.slice(0,10);
+    const matchesText = [s.invoice,s.customerName,s.payment]
+      .some(v=>String(v||"").toLowerCase().includes(q));
+
+    return matchesText && (!from || date>=from) && (!to || date<=to);
+  }).slice().reverse();
+
+  $("salesRows").innerHTML = rows.map(s =>
+    '<tr><td>'+safe(s.invoice)+'</td><td>'+safe(s.date)+'</td>'+
+    '<td>'+safe(s.customerName)+'</td><td>'+safe(s.payment)+'</td>'+
+    '<td>'+money(s.total)+'</td><td>'+money(s.paid)+'</td>'+
+    '<td>'+money(Math.max(0,s.total-s.paid))+'</td>'+
+    '<td><button class="btn small secondary" onclick="reprintSale(\''+s.id+'\')">Receipt</button></td></tr>'
+  ).join("") || '<tr><td colspan="8">No matching sales.</td></tr>';
+}
+
+$("salesSearch").addEventListener("input",renderSales);
+
+function reprintSale(id) {
+  const sale = state.sales.find(s=>s.id===id);
+  if (!sale) return;
+  showReceipt(sale);
+  printReceipt();
+}
+
+/* CUSTOMERS AND PAYMENTS */
+
+$("customerForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  const name = $("custName").value.trim();
+  if (!name) return;
+
+  state.customers.push({
+    id:uid("CUS"),
+    name,
+    phone:$("custPhone").value.trim(),
+    address:$("custAddress").value.trim(),
+    createdAt:new Date().toISOString()
+  });
+
+  if (saveState()) {
+    event.target.reset();
+    renderCustomers();
+    renderBillSelectors();
+    notify("Customer saved.");
+  }
+});
+
+function renderCustomers() {
+  $("customerRows").innerHTML = state.customers.map(c =>
+    '<tr><td>'+safe(c.name)+'</td><td>'+safe(c.phone)+'</td>'+
+    '<td>'+money(customerDue(c.id))+'</td>'+
+    '<td><button class="btn small green" onclick="receivePayment(\''+c.id+'\')">Receive Payment</button></td>'+
+    '<td><button class="btn small secondary" onclick="editCustomer(\''+c.id+'\')">Edit</button> '+
+    '<button class="btn small red" onclick="deleteCustomer(\''+c.id+'\')">Delete</button></td></tr>'
+  ).join("") || '<tr><td colspan="5">No customers added.</td></tr>';
+
+  $("paymentRows").innerHTML = state.payments.slice().reverse().map(p =>
+    '<tr><td>'+safe(p.date)+'</td><td>'+safe(p.customerName)+'</td>'+
+    '<td>'+money(p.amount)+'</td><td>'+safe(p.notes)+'</td></tr>'
+  ).join("") || '<tr><td colspan="4">No payments received.</td></tr>';
+}
+
+function receivePayment(id) {
+  const customer = state.customers.find(c=>c.id===id);
+  if (!customer) return;
+
+  const due = customerDue(id);
+  if (due <= 0) return notify("This customer has no outstanding balance.");
+
+  const input = prompt("Outstanding balance: "+money(due)+"\nAmount received:",String(due));
+  if (input === null) return;
+
+  const amount = Number(input);
+
+  if (!Number.isFinite(amount) || amount <= 0 || amount > due) {
+    return notify("Enter a positive payment no greater than the outstanding balance.");
+  }
+
+  const notes = prompt("Payment notes (optional):","") || "";
+
+  state.payments.push({
+    id:uid("PAY"),
+    customerId:id,
+    customerName:customer.name,
+    amount,
+    notes,
+    date:new Date().toISOString()
+  });
+
+  if (saveState()) {
+    renderCustomers();
+    renderDashboard();
+    renderBillSelectors();
+    notify("Payment recorded.");
+  }
+}
+
+function editCustomer(id) {
+  const c = state.customers.find(x=>x.id===id);
+  if (!c) return;
+
+  const name = prompt("Customer name:",c.name);
+  if (name === null) return;
+  if (!name.trim()) return notify("Name cannot be empty.");
+
+  const phone = prompt("Phone:",c.phone);
+  if (phone === null) return;
+
+  const address = prompt("Address:",c.address);
+  if (address === null) return;
+
+  c.name = name.trim();
+  c.phone = phone.trim();
+  c.address = address.trim();
+
+  if (saveState()) {
+    renderCustomers();
+    renderBillSelectors();
+    notify("Customer updated.");
+  }
+}
+
+function deleteCustomer(id) {
+  const c = state.customers.find(x=>x.id===id);
+  if (!c) return;
+
+  const hasHistory = state.sales.some(s=>s.customerId===id);
+
+  if (hasHistory || customerDue(id)>0) {
+    return notify("This customer has sales history or an outstanding balance. Keep the customer record.");
+  }
+
+  if (!confirm("Delete customer "+c.name+"?")) return;
+
+  state.customers = state.customers.filter(x=>x.id!==id);
+
+  if (saveState()) {
+    renderCustomers();
+    renderBillSelectors();
+  }
+}
+
+/* PURCHASES */
+
+$("purchaseForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  const name = $("purName").value.trim();
+  const brand = $("purBrand").value.trim();
+  const batch = $("purBatch").value.trim();
+  const expiry = $("purExpiry").value;
+  const qty = Number($("purQty").value);
+  const cost = Number($("purCost").value);
+  const price = Number($("purPrice").value);
+  const supplier = $("purSupplier").value.trim();
+
+  if (!name || !batch || !expiry || !supplier ||
+      !Number.isInteger(qty) || qty<1 || cost<0 || price<=0) {
+    return notify("Enter valid purchase details.");
+  }
+
+  if (expiry < today()) return notify("Cannot record expired stock as available inventory.");
+
+  let item = state.inventory.find(i=>
+    i.name.toLowerCase()===name.toLowerCase() &&
+    i.batch.toLowerCase()===batch.toLowerCase()
+  );
+
+  if (item && item.expiry !== expiry) {
+    return notify("This batch already exists with a different expiry date. Check the batch details.");
+  }
+
+  if (!item) {
+    item = {
+      id:uid("MED"),
+      name,brand,batch,
+      category:"",
+      expiry,
+      qty:0,
+      cost,
+      price,
+      threshold:number(state.settings.threshold),
+      supplier
+    };
+    state.inventory.push(item);
+  }
+
+  // Update the average purchase cost for existing stock.
+  const oldQty = number(item.qty);
+  const newQty = oldQty + qty;
+
+  item.cost = newQty > 0
+    ? ((oldQty*number(item.cost))+(qty*cost))/newQty
+    : cost;
+
+  item.qty = newQty;
+  item.price = price;
+  item.supplier = supplier;
+
+  state.purchases.push({
+    id:uid("PUR"),
+    date:new Date().toISOString(),
+    invoice:$("purInvoice").value.trim(),
+    name,
+    batch,
+    supplier,
+    qty,
+    cost,
+    total:qty*cost
+  });
+
+  if (saveState()) {
+    event.target.reset();
+    renderPurchases();
+    renderInventory();
+    renderDashboard();
+    renderBillSelectors();
+    notify("Purchase recorded and stock updated.");
+  }
+});
+
+function renderPurchases() {
+  $("purchaseRows").innerHTML = state.purchases.slice().reverse().map(p =>
+    '<tr><td>'+safe(p.date)+'</td><td>'+safe(p.invoice)+'</td>'+
+    '<td>'+safe(p.name)+' · '+safe(p.batch)+'</td>'+
+    '<td>'+safe(p.supplier)+'</td><td>'+number(p.qty)+'</td>'+
+    '<td>'+money(p.cost)+'</td><td>'+money(p.total)+'</td></tr>'
+  ).join("") || '<tr><td colspan="7">No purchases recorded.</td></tr>';
+}
+
+/* EXPENSES */
+
+$("expenseForm").addEventListener("submit",event=>{
+  event.preventDefault();
+
+  const description = $("expDescription").value.trim();
+  const category = $("expCategory").value;
+  const amount = Number($("expAmount").value);
+
+  if (!description || !Number.isFinite(amount) || amount<=0) {
+    return notify("Enter a valid description and positive amount.");
+  }
+
+  state.expenses.push({
+    id:uid("EXP"),
+    date:new Date().toISOString(),
+    description,
+    category,
+    amount
+  });
+
+  if (saveState()) {
+    event.target.reset();
+    renderExpenses();
+    renderReports();
+    notify("Expense saved.");
+  }
+});
+
+function renderExpenses() {
+  $("expenseRows").innerHTML = state.expenses.slice().reverse().map(e =>
+    '<tr><td>'+safe(e.date)+'</td><td>'+safe(e.description)+'</td>'+
+    '<td>'+safe(e.category)+'</td><td>'+money(e.amount)+'</td>'+
+    '<td><button class="btn small red" onclick="deleteExpense(\''+e.id+'\')">Delete</button></td></tr>'
+  ).join("") || '<tr><td colspan="5">No expenses recorded.</td></tr>';
+}
+
+function deleteExpense(id) {
+  if (!confirm("Delete this expense?")) return;
+
+  state.expenses = state.expenses.filter(e=>e.id!==id);
+
+  if (saveState()) {
+    renderExpenses();
+    renderReports();
+    renderDashboard();
+  }
+}
+
+/* REPORTS */
+
+function renderReports() {
+  const from = $("reportFrom").value;
+  const to = $("reportTo").value;
+
+  const inRange = entry => {
+    const d = entry.date.slice(0,10);
+    return (!from || d>=from) && (!to || d<=to);
+  };
+
+  const sales = state.sales.filter(inRange);
+  const expenses = state.expenses.filter(inRange);
+
+  const revenue = sales.reduce((sum,s)=>sum+number(s.total),0);
+  const gross = sales.reduce((sum,s)=>sum+number(s.grossProfit),0);
+  const expenseTotal = expenses.reduce((sum,e)=>sum+number(e.amount),0);
+
+  $("rSales").textContent = money(revenue);
+  $("rGross").textContent = money(gross);
+  $("rExpenses").textContent = money(expenseTotal);
+  $("rNet").textContent = money(gross-expenseTotal);
+}
+
+/* SETTINGS */
+
+function loadSettingsForm() {
+  const s = state.settings;
+
+  $("settingStore").value = s.store || "";
+  $("settingPhone").value = s.phone || "";
+  $("settingAddress").value = s.address || "";
+  $("settingCurrency").value = s.currency || "Rs";
+  $("settingThreshold").value = number(s.threshold);
+  $("settingPlan").value = s.plan || "Pro Demo";
+}
+
+function saveSettings() {
+  const store = $("settingStore").value.trim();
+  const currency = $("settingCurrency").value.trim();
+  const threshold = Number($("settingThreshold").value);
+
+  if (!store || !currency || !Number.isInteger(threshold) || threshold<0) {
+    return notify("Enter a valid store name, currency and threshold.");
+  }
+
+  state.settings.store = store;
+  state.settings.phone = $("settingPhone").value.trim();
+  state.settings.address = $("settingAddress").value.trim();
+  state.settings.currency = currency;
+  state.settings.threshold = threshold;
+  state.settings.plan = $("settingPlan").value;
+
+  $("storeHeading").textContent = store;
+  $("planBadge").textContent = state.settings.plan.toUpperCase();
+
+  if (saveState()) {
+    renderDashboard();
+    renderInventory();
+    renderReports();
+    notify("Settings saved.");
+  }
+}
+
+/* CSV EXPORT */
+
+function downloadFile(filename,content,type) {
+  const blob = new Blob([content],{type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function csvCell(value) {
+  let textValue = String(value ?? "");
+
+  // Prevent spreadsheet formula injection in exported user-entered text.
+  if (/^[\s]*[=+\-@]/.test(textValue)) textValue = "'"+textValue;
+
+  return '"'+textValue.replace(/"/g,'""')+'"';
+}
+
+function downloadCSV(filename,headers,rows) {
+  const csv = [headers,...rows]
+    .map(row=>row.map(csvCell).join(","))
+    .join("\r\n");
+
+  downloadFile(filename,"\uFEFF"+csv,"text/csv;charset=utf-8;");
+}
+
+function exportCSV(type) {
+  if (type==="inventory") {
+    downloadCSV("medical-inventory.csv",
+      ["Medicine","Brand","Batch","Category","Expiry","Quantity","Cost","Price","Threshold","Supplier"],
+      state.inventory.map(i=>[i.name,i.brand,i.batch,i.category,i.expiry,i.qty,i.cost,i.price,i.threshold,i.supplier])
+    );
+  }
+
+  if (type==="sales") {
+    downloadCSV("medical-sales.csv",
+      ["Invoice","Date","Customer","Payment","Subtotal","Discount","Total","Paid","Due","Gross Profit"],
+      state.sales.map(s=>[s.invoice,s.date,s.customerName,s.payment,s.subtotal,s.discount,s.total,s.paid,Math.max(0,s.total-s.paid),s.grossProfit])
+    );
+  }
+
+  if (type==="expenses") {
+    downloadCSV("medical-expenses.csv",
+      ["Date","Description","Category","Amount"],
+      state.expenses.map(e=>[e.date,e.description,e.category,e.amount])
+    );
+  }
+
+  if (type==="report") {
+    downloadCSV("medical-profit-report.csv",
+      ["Invoice","Date","Customer","Sales","Gross Profit"],
+      state.sales.map(s=>[s.invoice,s.date,s.customerName,s.total,s.grossProfit])
+    );
+  }
+}
+
+/* FULL JSON BACKUP */
+
+function backupData() {
+  const payload = {
+    ...state,
+    backupCreatedAt:new Date().toISOString(),
+    application:"Medical Store POS Pro"
+  };
+
+  downloadFile(
+    "medical-store-backup-"+today()+".json",
+    JSON.stringify(payload,null,2),
+    "application/json;charset=utf-8;"
+  );
+}
+
+$("restoreFile").addEventListener("change",async event=>{
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const textData = await file.text();
+    const data = JSON.parse(textData);
+
+    const arrays = ["inventory","sales","customers","payments","purchases","expenses"];
+
+    if (!data || typeof data!=="object" ||
+        !data.settings || typeof data.settings!=="object" ||
+        !arrays.every(key=>Array.isArray(data[key]))) {
+      throw new Error("Invalid backup structure.");
+    }
+
+    if (!confirm("Restoring will replace all current local data. Download your current backup first. Continue?")) {
+      event.target.value = "";
+      return;
+    }
+
+    const restored = initialState();
+
+    for (const key of arrays) restored[key] = data[key];
+
+    restored.settings = {...restored.settings,...data.settings};
+
+    // Validate that the essential records have IDs and usable values.
+    if (restored.inventory.some(i=>
+      !i.id || !i.name || !i.batch ||
+      !Number.isFinite(Number(i.qty)) || Number(i.qty)<0
+    )) {
+      throw new Error("Inventory data validation failed.");
+    }
+
+    if (restored.sales.some(s=>
+      !s.id || !s.invoice || !Array.isArray(s.items) ||
+      !Number.isFinite(Number(s.total)) || Number(s.total)<0
+    )) {
+      throw new Error("Sales data validation failed.");
+    }
+
+    const oldState = state;
+    state = restored;
+
+    if (!saveState()) {
+      state = oldState;
+      saveState();
+      return;
+    }
+
+    cart = [];
+    $("storeHeading").textContent = state.settings.store || "Medical Store POS Pro";
+    $("planBadge").textContent = (state.settings.plan || "Pro Demo").toUpperCase();
+
+    refreshAll();
+    notify("Backup restored successfully.");
+  } catch (error) {
+    notify("Restore failed: "+error.message);
+  } finally {
+    event.target.value = "";
+  }
+});
+
+/* DELETE ALL DATA */
+
+function resetAllData() {
+  const confirmation = prompt(
+    "WARNING: This deletes all local inventory, sales, customers, payments, purchases and expenses.\nType DELETE to confirm."
+  );
+
+  if (confirmation !== "DELETE") return;
+
+  const oldState = state;
+  state = initialState();
+
+  if (!saveState()) {
+    state = oldState;
+    return;
+  }
+
+  cart = [];
+  $("storeHeading").textContent = state.settings.store;
+  $("planBadge").textContent = state.settings.plan.toUpperCase();
+
+  refreshAll();
+  showPage("dashboard");
+  notify("All local business data has been deleted.");
+}
+
+/* INITIALIZATION */
+
+function refreshAll() {
+  renderDashboard();
+  renderInventory();
+  renderBillSelectors();
+  renderSales();
+  renderCustomers();
+  renderPurchases();
+  renderExpenses();
+  renderReports();
+  loadSettingsForm();
+}
+
+function initialize() {
+  $("medThreshold").value = state.settings.threshold;
+  $("storeHeading").textContent = state.settings.store || "Medical Store POS Pro";
+  $("planBadge").textContent = (state.settings.plan || "Pro Demo").toUpperCase();
+
+  $("reportFrom").value = today().slice(0,8)+"01";
+  $("reportTo").value = today();
+
+  refreshAll();
+}
+
+initialize();
+</script>
 </body>
 </html>
